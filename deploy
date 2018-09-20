@@ -1,0 +1,29 @@
+#!/bin/bash
+
+. ./deploy.conf
+
+IFS=',' read -r -a array <<< "$exclude"
+EXCLUDE=""
+
+for element in "${array[@]}"
+do
+    EXCLUDE+="--exclude $element "
+done
+
+if [ $# -eq 0 ]
+    then
+        echo "Error. Faltan parámetros";
+elif [ $1 == "live" ]
+    then
+        if [[ -z $2 ]]
+            then
+                echo "Running dry-run"
+                rsync --dry-run -az --force --delete --progress $EXCLUDE -e "ssh -p $port -i $private_key" ./ $user@$host:$target
+        elif [ $2 == "go" ]
+            then
+                echo "Running deploy"
+                rsync -az --force --delete --progress $EXCLUDE -e "ssh -p $port -i $private_key" ./ $user@$host:$target
+        else
+            echo "Error. Faltan parámetros";
+        fi
+fi
